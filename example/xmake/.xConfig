@@ -1,0 +1,36 @@
+ISROOT=true
+
+C_CODE='''
+#include "stdio.h"
+
+int main(void){
+    printf(
+        "hello %s!",
+        <! 
+xshell id -un |
+jaq -R . 
+!>      );
+}
+'''
+
+[[XMAKE]]
+TARGET="run"
+DEPENDENCY=["run.out"]
+COMMAND="./run.out"
+
+[[XMAKE]]
+TARGET="run.out"
+DEPENDENCY=["main.c"]
+COMMAND="gcc main.c -o run.out"
+
+[[XMAKE]]
+TARGET="main.c"
+DEPENDENCY=[]
+COMMAND="../../bin/xsartt/xsartt.exe xconfig .C_CODE --WTF main.c"
+
+[[XMAKE]]
+TARGET="clean"
+DEPENDENCY=[]
+COMMAND="rm run.out main.c"
+
+
