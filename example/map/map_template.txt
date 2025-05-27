@@ -1,0 +1,12 @@
+# this is output of xsartt map
+
+title is: <~$.input.map_title~>
+
+<~$.input map_as:content is: '<~@.map_content~>' ~>
+
+object:
+    <~$.input.map_object:format:xml~>
+
+array:
+<~$.input|.map_array map_as:
+    item: <~@.~> ~>

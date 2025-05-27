@@ -1,0 +1,9 @@
+ISROOT=true
+
+[input]
+map_title="this a example of xsartt map"
+map_content="this is content"
+map_object={"value_a"="a", "value_b"="b"}
+map_array=["e","f","g"]
+
+

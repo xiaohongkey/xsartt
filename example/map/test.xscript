@@ -1,0 +1,4 @@
+#!../../bin/xsartt/xsartt.exe xscript
+
+xconfig -O json |
+map --WTF output.txt -k @-.json -i @map_template.txt
