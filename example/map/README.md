@@ -9,10 +9,10 @@
 
     - 需要映射的数据挂在'input'这个节点上
 
-    具体规则可以看[README_cn.md#xconfig](../../README_cn.md#xconfig)
+    具体规则可以看[README.md#xconfig](../../README.md#xconfig)
 
 - map_template.txt
-    模板， 其中<~xxx~>是需要被映射的部分。规则可以看[README_cn.md#map](../../README_cn.md#map)
+    模板， 其中<~xxx~>是需要被映射的部分。规则可以看[README.md#map](../../README.md#map)
 
 - test.xscript
     执行映射的脚本文件

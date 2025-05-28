@@ -10,7 +10,7 @@
 
 - .env
     从此文件中'XSARTT__'开头的配置中加载数据
-    具体规则可以看[README_cn.md#数据加载](../../../README_cn.md#数据的加载)
+    具体规则可以看[README.md#数据加载](../../../README.md#数据的加载)
 
 - show_config.sh
     显示数据
