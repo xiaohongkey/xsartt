@@ -14,10 +14,10 @@ shell中的变量都是文本，但都是一维的， python等可以有结构�
 
 ### block
 ```bash
-$ xsartt block --help
-在文本中找出指定界定符的块, 可嵌套.for example:
->> echo '<~甜aa~> <~ccc <~ddd~> ~>' | xsartt block -i @-
-{"range":[0,27],"str":"<~甜aa~> <~ccc <~ddd~> ~>\n","sub":[{"range":[2,7],"str":"甜aa","sub":[]}, {"range":[12,24],"str":"ccc <~ddd~> ","sub":[{"range":[18,21],"str":"ddd","sub":[]}]}]}
+$ bin/xsartt/xsartt.exe block --help
+在文本中找出指定界定符的块, 可嵌套.示例:
+$ echo '<~block_1~> <~block_2 <~block_2_1~> ~>' | xsartt block -i @-
+{"range":[0,39],"str":"<~block_1~> <~block_2 <~block_2_1~> ~>\n","sub":[{"range":[2,9],"str":"block_1","sub":[]}, {"range":[14,36],"str":"block_2 <~block_2_1~> ","sub":[{"range":[24,33],"str":"block_2_1","sub":[]}]}]}
 
 Usage: xsartt.exe block [OPTIONS] --input-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
 
@@ -26,15 +26,14 @@ Options:
   -l, --left-backet <短语>                                    文本中块的左边界限符号 [default: <~]
   -r, --right-backet <短语>                                   文本中块的右边界限符号 [default: ~>]
   -i, --input-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>  输入文本
-  -h, --help 
 ```
 
 ### pattern
 最初的目的就是是用来组合生成正则表达式。主要的逻辑是分别定义子表达式， 再组合成一个大的表达式。
 ```bash
-$ xsartt pattern --help
-根据正则模板和正则项集构建一个正则表达式.for example:
->> xsartt pattern -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -g key -g value
+$ bin/xsartt/xsartt.exe pattern --help
+根据正则模板和正则项集构建一个正则表达式.示例:
+$ xsartt pattern -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -g key -g value
 \{"(?P<key>\w+)":"(?P<value>\w+)"\}
 
 Usage: xsartt.exe pattern [OPTIONS] --xpattern-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
@@ -48,17 +47,15 @@ Options:
           正则项集 [default: {}]
   -g, --xpattern-group <正则项名称>
           正则表达式中的组, 即正则项的名称
-  -h, --help
-          Print help
 ```
 
 ### map
 当初的写这个工具的主要目的就是用这个功能来自动代码生成。主要思想是用<~`json数据引用`~>的块嵌入到模板里，<~~>块可以嵌套，`json数据引用`的规则是“$|@.”开头， "$"引用根数据， "@"引用块内的数据。`json数据引用`的后面跟jq语句，不允许有空格。再后面可以跟:format:(json|yaml|toml|xconfig)直接输入各种格式文本。如果后面跟' map_as:'那后面的文本又是一个新的模板，数据来自`json数据引用`后的数据。
 ```bash
-$ xsartt map --help
-把正则项集数据(也可以是任意类JSON的数据)映射到输入文本模板中去.for example:
->> xsartt map -k '{"json_object":{"key":"a","value":"b"}}' -i 'map json_object as "<~$.json_object map key as (<~@.key~>), value as (<~@.value~>)"~>'   
-map json_object as "map key as (a), value as (b)"
+$ bin/xsartt/xsartt.exe map --help
+把正则项集数据(也可以是任意类JSON的数据)映射到输入文本模板中去.示例:
+$ xsartt map -k '{"json_object":{"key":"a","value":"b"}}' -i 'map json_object as "<~$.json_object map_as:key=(<~@.key~>), value=(<~@.value~>)"~>'
+map json_object as "key=(a), value=(b)"
 
 Usage: xsartt.exe map [OPTIONS] --input-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
 
@@ -69,8 +66,6 @@ Options:
           正则项集 [default: {}]
   -i, --input-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
           输入文本
-  -h, --help
-          Print help
 ```
 
 >参考示例 [example/map](example/map/README.md)
@@ -78,11 +73,11 @@ Options:
 ### find 
 从文本中按正则表达式查找。
 ```bash
-$ xsartt find --help
-用构建的正则表达是在输入文本中找出匹配的文本.for example:
->> xsartt find -i '{"a":"b"}'  -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -g key -g value  
+$ bin/xsartt/xsartt.exe find --help
+用构建的正则表达是在输入文本中找出匹配的文本.示例:
+$ xsartt find -i '{"a":"b"}'  -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -g key -g value
 [{"g0": "{\"a\":\"b\"}", "index": "0", "key": "a", "value": "b"}]
->> xsartt find -i '{"a":"b"}'  -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -s '"json_object"={"key"={},"value"={}}'
+$ xsartt find -i '{"a":"b"}'  -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -s '"json_object"={"key"={},"value"={}}'        
 [{"json_object":{"key":"a","value":"b"}}]
 
 Usage: xsartt.exe find [OPTIONS] --xpattern-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径> --input-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
@@ -100,20 +95,19 @@ Options:
           正则表达式中的组, 即正则项的名称
   -s, --xpattern-skeleton <toml格式文本 或 @(json/yaml/toml/xconfig)文件名 或 :xconfig数据路径>>
           描述正则表达式结构的类JSON的数据
-  -h, --help
-          Print help
 ```
 
 ### replace 
 从文本中按正则表达式查找并替换文本。
 ```bash
-$ xsartt replace --help
-根据正则表达替换文本.for example:
->> xsartt replace -i '{"a":"b"}'  -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -g key -g value -r 'value is "$value", key is "$key"'
+$ bin/xsartt/xsartt.exe replace --help
+根据正则表达替换文本.示例:
+$ xsartt replace -i '{"a":"b"}'  -p '<~json_object~>' -k '{"value":"\\w+","key":"\\w+","json_object":"\\{\"<~key~>\":\"<~value~>\"\\}"}' -g key -g 
+value -r 'value is "$value", key is "$key"'
 value is "b", key is "a"
 
-Usage: xsartt.exe replace [OPTIONS] --xpattern-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径> --input-text <文本 或 @文件名 或 @-/*管道输 
-入*/ 或 :xconfig数据路径> --replace-format <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
+Usage: xsartt.exe replace [OPTIONS] --xpattern-text <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径> --input-text <文本 或 @文件名 或 @-/*管
+道输入*/ 或 :xconfig数据路径> --replace-format <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
 
 Options:
       --WTF <文件名>
@@ -130,17 +124,15 @@ Options:
           需要替换的格式, 可以用$<group>来表示引用正则表达式中的组.
   -w, --replace-write-back
           替换后直接会写回文件
-  -h, --help
-          Print help
 ```
 
 ### xconfig 
 直接输出输出的输入的数据, 可选格式和路径(可用","分隔输出多个路径，合并为队列)。
 ```bash
-$ xsartt xconfig --help
-输出xconfig数据.for example:
->> xsartt -E -A 'a="b"' xconfig -O json
-{"a":"b"}
+$ bin/xsartt/xsartt.exe xconfig --help
+输出xconfig数据.示例:
+$ xsartt -E -A 'a="b"' xconfig -O json
+{"ISROOT":true,"a":"b"}
 
 Usage: xsartt.exe xconfig [OPTIONS] [path]
 
@@ -151,15 +143,14 @@ Options:
       --WTF <文件名>                        输出到文件
       --freeze                           锁定xconfig为BASE64
   -O, --out-format <xconfig_out_format>  xconfig数据的输出格式, 可以为json/yaml/toml, 缺省为xconfig格式
-  -h, --help                             Print help
 ```
 
 ### xshell 
 调用OS的的可执行程序
 ```bash
-$ xsartt xshell --help
-使用xconfig中的数据(引用格式为\\<:$.'xconfig数据路径':\\>)作为参数执行命令行指令.for example:
->> xsartt xshell date
+$ bin/xsartt/xsartt.exe xshell --help
+使用xconfig中的数据(引用格式为\\<:$.'xconfig数据路径':\\>)作为参数执行命令行指令.示例:
+$ xsartt xshell date
 Thu, Mar 14, 2024  9:10:13 AM
 
 Usage: xsartt.exe xshell [OPTIONS] <cmd>...
@@ -171,17 +162,16 @@ Options:
       --WTF <文件名>     输出到文件
   -I, --ignore-error  忽略xshell/xmake失败。返回错误信息。
   -C, --cwd <目录名>     子命令运行基于的目录
-  -h, --help          Print help
 ```
 
 ### xmake
 用xconfig定义依赖关系(一个包含'TARGET:str', 'DEPENDENCY:list(str)', 'COMMAND:str'三个属性的对象的队列）， 按这个依赖关系构建。 和make差不多（实际上是调用make,所以使用前需按照GNU make)。
 ```bash
-$ xsartt xmake --help
-使用写在xconfig数据中XMAKE生成目标(依赖make).for example:
->> xsartt -A 'XMAKE_DEPENDENCY=[]' -A 'XMAKE=[{TARGET="t1",COMMAND="date"}]' xmake t1
-Thu, Mar 14, 2024  9:14:19 AM
-
+$ bin/xsartt/xsartt.exe xmake --help
+使用写在xconfig数据中XMAKE生成目标(依赖make).示例:
+$ xsartt -A 'XMAKE=[{TARGET="t1",COMMAND="echo xmake done!"}]' xmake t1
+echo xmake done!
+xmake done!
 
 Usage: xsartt.exe xmake [OPTIONS] [target]...
 
@@ -192,31 +182,38 @@ Options:
       --WTF <文件名>     输出到文件
   -I, --ignore-error  忽略xshell/xmake失败。返回错误信息。
   -C, --cwd <目录名>     子命令运行基于的目录
-  -h, --help          Print help
 ```
 >参考示例[example/xmake](example/xmake/README.md)
 
 ### eb64
 主要目的是用来传递包含转义字符的文本。
 ```bash
-$ xsartt eb64 --help
-文本转base64.
-
+$ bin/xsartt/xsartt.exe eb64 --help
+文本转base64.示例:
+$ echo aaa | xsartt eb64
+YWFhCg
 
 Usage: xsartt.exe eb64
-
-Options:
-  -h, --help  Print help
 ```
 
 ### db64
 eb64的反向操作。
+```bash
+$ bin/xsartt/xsartt.exe db64 --help
+base64转文本.示例:
+$ echo -n YWFhCg | xsartt db64
+aaa
+
+Usage: xsartt.exe db64
+```
 
 ### jaq
 和jq用法差不多, 可使用'xsartt jaq -- --help'了解更多
 ```bash
-$ xsartt jaq --help
-由于经常用到jq, xsartt包裹一个rust开发的项目: [https://github.com/01mf02/jaq.git]
+$ bin/xsartt/xsartt.exe jaq --help
+由于经常用到jq, xsartt包裹一个rust开发的项目: [https://github.com/01mf02/jaq.git]. 示例：
+$ echo '{"a":"b"}' | xsartt jaq .a
+"b"
 
 Usage: xsartt.exe jaq [OPTIONS] <jaq_args>...
 
@@ -225,14 +222,15 @@ Arguments:
 
 Options:
       --WTF <文件名>  输出到文件
-  -h, --help       Print help
 ```
 
 ### jsq
 和jaq功能一样，但适合在xscript中使用。
 ```bash
-$ xsartt jsq --help
-简单jq，不支持复杂的命令行选项
+$ bin/xsartt/xsartt.exe jsq --help
+简单jq，不支持复杂的命令行选项.示例:
+$ xsartt jsq -k '{"a":"b"}' -j .a
+b
 
 Usage: xsartt.exe jsq [OPTIONS] --jq-filter <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>
 
@@ -243,15 +241,31 @@ Options:
           jq运算算法
   -k, --jq-input <json格式文本 或 @(json/yaml/toml/xconfig)文件名 或 :xconfig数据路径, 可缺省为{}>
           输入的json数据 [default: {}]
-  -h, --help
-          Print help
+```
+
+### set
+加载数据。只能在xscript中使用。
+```bash
+$ bin/xsartt/xsartt.exe  xscript -f 'set --help'
+只能在xscript中使用, 加载xconfig(和命令行选项-A作用一样).示例:
+$ xsartt xscript -f 'set --set-as c {a="b"}'
+{"c":{"a":"b"}}
+
+Usage: set [OPTIONS] <set_content>...
+
+Arguments:
+  <set_content>...  加载的内容
+
+Options:
+  -a, --set-as <set_as>  把xconfig value写入--set-as后面的变量, 缺省写入xconfig root
+  -C, --cwd <目录名>        子命令运行基于的目录
 ```
 
 ### xscript
 一个脚本语言， 以上命令都可以在脚本语言中用到。
 一些规则如下：
 - 多行文本
-采用 '...<<EOF\n' 开头， 'EOF\n' 结束。 好像还可以嵌套， 我不记得的了，呵呵。
+采用 '...<<EOF\n' 开头， 'EOF\n' 结束。
 如：
 ```xscript
 echo <:<<EOF
@@ -273,9 +287,9 @@ EOF
 - 可以和bash一样， 在脚本文件第一行写入 '#!xsartt xscript' 直接调用。
 
 ```bash
-$ xsartt xscript --help
-执行xsartt脚本.for example:
->> xsartt xscript -f 'xshell date'
+$ bin/xsartt/xsartt.exe xscript --help
+执行xsartt脚本.示例:
+$ xsartt xscript -f 'xshell date'
 Mon, Jan  6, 2025  2:22:50 PM
 
 Usage: xsartt.exe xscript [OPTIONS] [xsartt_script_file]
@@ -287,7 +301,6 @@ Options:
       --WTF <文件名>                                             输出到文件
   -C, --cwd <目录名>                                             子命令运行基于的目录
   -f, --from-content <文本 或 @文件名 或 @-/*管道输入*/ 或 :xconfig数据路径>  文本输入
-  -h, --help
 ```
 
 ## 数据的加载
@@ -308,49 +321,60 @@ xsartt支持多种序列化数据输入(json/toml/yaml/xml/xconfig)
         在任何xconfig中， 可使用'#INCXCFG XXXX'加载一些配置。
         XXXX 可以是 @/path/to/.xConfig 加载一个文件（**注意不要循环引用**）。
         如果XXXX 不是以@开头， XXXX将被解释为EB64字符串，自动通过DB64还原为xconfig正文。
-        EB64字符串可以通过如下命令获得： 'echo -n <\xconfig正文> | xsartt eb64'
+        EB64字符串可以通过如下命令获得： 'echo -n `xconfig正文` | xsartt eb64'
 
 
     
 
 - xsartt支持.env。 
 在.env中的格式为"XSARTT__X__XX='XXXXX'"的数据被xsartt读入，解释为 X.XX=XXXXXX ，也就是说'__'解释为'.',解释后的内容需符合前面描述的xconfig正文规则。
-'XXXXX'可以为文本如'"aaaa"', 也可以是toml格式数据如'[{"a"="1"},2]', 甚至可以来自文件如'@/path/to/.xConfig'
 在命令行， 可以用'-E'屏蔽从.env读入数据。
 >**一个节点的数据只能在一个配置中写完，不能多次配置**
 
 >参考示例[example/example/xconfig/dotent](example/xconfig/dotenv/README.md)
 
-- 在命令行， 用-A(--update-xconfig 可多次使用)记载数据。
+- 在命令行， 用-A(--update-xconfig 可多次使用)加载数据。
 
-- 在xscript中， 用'set [ -a <\node> ] ..../@<\datafile> ' 加载数据。
+- 在xscript中， 用'set [ -a `node` ] ....|@/path/to/.xConfig ' 加载数据。
 
 ## 安装和使用
         - xsartt 
-                可直接执行/bin/xsartt/xsartt.exe
+                可直接执行 bin/xsartt/xsartt.exe
 
         - pyxsartt
-                python -m pip install /bin/pyxsartt/pyxsartt-0.5.2-cp313-cp313-win_amd64.whl
-pysartt使用示例
+                python -m pip install bin/pyxsartt/pyxsartt-0.5.2-cp313-cp313-win_amd64.whl
+                pysartt使用示例:
 ```python
-import pyxsartt
-import json
-# 版本
-print("pyxsartt.xsartt_version():{}".format(pyxsartt.xsartt_version()))
-# 加载数据
-print(
-        "json.loads(pyxsartt.xsartt_xconfig(\"astring=\\\"string1\\\"\"))[\"astring\"]:{}"
-        .format(
-                json.loads(pyxsartt.xsartt_xconfig("astring=\"string1\"", "json"))["astring"]
-        )
-)
-# 执行xscript脚本
-print(
-        "pyxsartt.xsartt_xscript(\"xscript -f <:echo abc:>\"):{}"
-        .format(
-                pyxsartt.xsartt_xscript("xscript -f <:echo abc:>")
-        )
-)    
+                import pyxsartt
+                import json
+                # 版本
+                print("pyxsartt.xsartt_version():{}".format(pyxsartt.xsartt_version()))
+                # 加载数据
+                print(
+                        "json.loads(pyxsartt.xsartt_xconfig(\"astring=\\\"string1\\\"\"))[\"astring\"]:{}"
+                        .format(
+                                json.loads(pyxsartt.xsartt_xconfig("astring=\"string1\"", "json"))["astring"]
+                        )
+                )
+                # 执行xscript脚本
+                print(
+                        "pyxsartt.xsartt_xscript(\"xscript -f <:echo abc:>\"):{}"
+                        .format(
+                                pyxsartt.xsartt_xscript("xscript -f <:echo abc:>")
+                        )
+                )    
+```
+
+        - xsartt终端
+                xsartt可作为一个终端使用,在终端里可逐条执行xscript语句。方法为：
+```bash
+                $ XSARTT_LOG_LEVEL=info bin/xsartt/xsartt.exe
+                [INFO ] /path/to/xsartt::sartt>>
+                echo hello,xsartt!
+                [INFO ] ok
+                hello,xsartt!
+                [INFO ] /path/to/xsartt::sartt>>
+                exit
 ```
 
 ## 其他
