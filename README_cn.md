@@ -2,11 +2,11 @@
 
 xsartt: xiaohong's struct & regular text tool的缩写。 意思就是用来处理文本的工具。
 平时在工作中用到shell/python/java甚至是c,本质上都是符合一定规则的文本。这些工具都很强大，但用起来总要东拼西凑，所以写了这个工具。
-这个工具的本意就是输入一段符合规则的文本，在用一段文本描述这段规则，输出一段意图输出的文本。
+这个工具的本意就是输入一段符合规则的文本，再用一段文本描述这段规则，输出一段意图输出的文本。
 shell中的变量都是文本，但都是一维的， python等可以有结构化的数据，但比较繁琐。所以我希望有一个处理系列化后文本的工具。
-这些系列化的数据可以是流行的各种格式，json/yaml/toml/xml甚至是可以用正则表达式解析的文本。这个工具主要是用来处理这种输入文本。
-逻辑处理我采用了JQ语法逻辑，我自己也写不出来，所以引用了一个开源的项目（https://github.com/01mf02/jaq), 包裹在这个工具里，用来处理数据。自己有写了一部分分析嵌套块的逻辑，共同组成这个工具的核心部分。
-这个逻辑主要用处是用来代码的自动生成。也可以生成任意自己编辑模板的文本。还有一些其他应用，比如写了一个脚本语言，还写了一个make的工具，还有一些乱七八糟的功能，都是基于输入一段包含数据的格式化文本，输出想要的文本。
+这些系列化的数据可以是流行的各种格式，json/yaml/toml/xml甚至是可以用正则表达式解析的文本。这个工具主要功能就是用来处理这种输入文本。
+逻辑处理我采用了JQ语法逻辑，我自己也写不出来，所以引用了一个开源的项目（https://github.com/01mf02/jaq), 包裹在这个工具里，用来处理数据。自己又写了一部分分析嵌套文本块的逻辑，共同组成这个工具的核心部分。
+这个工具当初主要用处是用来代码的自动生成。也可以生成任意自己编辑模板的文本。还有一些其他应用，比如写了一个脚本语言，还写了一个make的工具，还有一些乱七八糟的功能，都是基于输入一段包含格式化的数据的文本，输出想要的文本。
 我还把主要逻辑包装成了一个PYTHON库(pyxsartt),可以在PYTHON中调用。
 下面就一一简单介绍。
 
@@ -173,7 +173,7 @@ Options:
 ```
 
 ### xmake
-用类json文本定义依赖关系(一个包含'TARGET:str', 'DEPENDENCY:list(str)', 'COMMAND:str'三个属性的对象的队列）， 按这个依赖关系构建。 和make差不多（实际上是调用make,所以使用前需按照GNU make)。
+用xconfig定义依赖关系(一个包含'TARGET:str', 'DEPENDENCY:list(str)', 'COMMAND:str'三个属性的对象的队列）， 按这个依赖关系构建。 和make差不多（实际上是调用make,所以使用前需按照GNU make)。
 ```bash
 $ xsartt xmake --help
 使用写在xconfig数据中XMAKE生成目标(依赖make).for example:
@@ -251,9 +251,10 @@ Options:
 采用 '...<<EOF\n' 开头， 'EOF\n' 结束。 好像还可以嵌套， 我不记得的了，呵呵。
 如：
 ```xscript
-echo <<EOF
+echo <:<<EOF
 line1
 line2
+:>
 EOF
 ``` 
 
@@ -261,12 +262,12 @@ EOF
 定义了5个管道， 标号0-4和5-9管道相同， 0-4表示擦除后重新写入， 5-9表示在减去5后的那个管道添加写入。
 每一行命令后跟'x|'表示写入管道x, x没有表示写入管道0.
 读取管道在各条命令中和读取文件一样 '@-x',  x没有表示管道0。 如果管道中数据有固定格式如JSON, 可以用'@-x.json'解释为JSON数据。
-写入管道的额输出不再在标准输出里输出。
+写入管道的输出不再在标准输出里输出。
 
 - 长参数
-    输入包含空格或转义字符的参数， 用<:....:>包裹，相当于shell里的"'"
+    输入包含空格或转义字符的参数， 用<:xxx xxx:>包裹，相当于shell里的'xxx xxx'
 
-- 可以和bash 一样， 在脚本文件第一行写入 '#!xsartt xscript' 直接调用。
+- 可以和bash一样， 在脚本文件第一行写入 '#!xsartt xscript' 直接调用。
 
 ```bash
 $ xsartt xscript --help
@@ -312,7 +313,7 @@ xsartt支持多种序列化数据输入(json/toml/yaml/xml/xconfig)
                 可直接执行/bin/xsartt/xsartt.exe
 
         - pyxsartt
-                python -m pip install /bin/pyxsartt/pyxsartt-0.5.2-cp313-cp313-win_amd64
+                python -m pip install /bin/pyxsartt/pyxsartt-0.5.2-cp313-cp313-win_amd64.whl
 pysartt使用示例
 ```python
 import pyxsartt
@@ -337,7 +338,7 @@ print(
 
 ## 其他
 
-被裁员了,也许以后不搞软件了。把这个工具上传， ，希望有人能用得到。
+被裁员了,也许以后不搞软件了。把这个工具上传，希望有人能用得到。
 当前先上传BIN, 如有人愿意用，再考虑上传源码（开发语言 RUST)
 当前只编译了stable-x86_64-pc-windows-msvc版本， pyxsartt 安装包 在python v3.13基础上编译。
 
