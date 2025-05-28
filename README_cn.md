@@ -73,6 +73,8 @@ Options:
           Print help
 ```
 
+>参考示例 [example/map](example/map/README.md)
+
 ### find 
 从文本中按正则表达式查找。
 ```bash
@@ -192,6 +194,7 @@ Options:
   -C, --cwd <目录名>     子命令运行基于的目录
   -h, --help          Print help
 ```
+>参考示例[example/xmake](example/xmake/README.md)
 
 ### eb64
 主要目的是用来传递包含转义字符的文本。
@@ -295,14 +298,28 @@ xsartt支持多种序列化数据输入(json/toml/yaml/xml/xconfig)
     - 每个执行xsartt的当前目录下必须有一个.xConfig 文件。
     - 如果当前执行目录的上一级目录有.xConfig文件，其中配置也会被读入，直到有一个.xConfig文件中包含'ISROOT=true'
     - 加载的顺序为从ISROOT的那级目录开始，依次加载子目录。
-    - 每个配置可以在文本中用'^~$.xxx~^'引用前面加载的数据， xxx是JQ语法。同一个.xConfig按字母顺序加载，所以需要被引用的数据应放在一个小于引用他的节点上。 如 D.VALUE="ADD ^~$.C.VALUE~^" 可以引用 C.VALUE="C VALUE", 反之不行。但上一级目录数据可以。
+    - 每个配置可以在文本中用'^~\$.xxx~^'引用前面加载的数据， xxx是JQ语法。同一个.xConfig按字母顺序加载，所以需要被引用的数据应放在一个小于引用他的节点上。 如 D.VALUE="引用 ^~$.C.VALUE~^" 可以引用节点'C.VALUE', 反之不行。但上一级目录数据可以。
     - 每个配置可以在文本中用'<!xxxx!>'直接执行xscript脚本的返回值作为输入。如 whoami="<! xshell id -un !>"
+
+    >参考示例 [example/example/xconfig/多级目录配置](example/xconfig/level_1_dir/level_2_dir_1/README.md)
+
+    - #INCXCFG 和 EB64 
+
+        在任何xconfig中， 可使用'#INCXCFG XXXX'加载一些配置。
+        XXXX 可以是 @/path/to/.xConfig 加载一个文件（**注意不要循环引用**）。
+        如果XXXX 不是以@开头， XXXX将被解释为EB64字符串，自动通过DB64还原为xconfig正文。
+        EB64字符串可以通过如下命令获得： 'echo -n <\xconfig正文> | xsartt eb64'
+
+
     
 
 - xsartt支持.env。 
-在.env中的格式为"XSARTT__X__XX=XXXXX"的数据被xsartt读入，解释为 X.XX=XXXXXX ，也就是说'__'解释为'.'。
+在.env中的格式为"XSARTT__X__XX='XXXXX'"的数据被xsartt读入，解释为 X.XX=XXXXXX ，也就是说'__'解释为'.',解释后的内容需符合前面描述的xconfig正文规则。
 'XXXXX'可以为文本如'"aaaa"', 也可以是toml格式数据如'[{"a"="1"},2]', 甚至可以来自文件如'@/path/to/.xConfig'
 在命令行， 可以用'-E'屏蔽从.env读入数据。
+>**一个节点的数据只能在一个配置中写完，不能多次配置**
+
+>参考示例[example/example/xconfig/dotent](example/xconfig/dotenv/README.md)
 
 - 在命令行， 用-A(--update-xconfig 可多次使用)记载数据。
 
