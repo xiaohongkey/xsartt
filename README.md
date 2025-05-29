@@ -377,6 +377,12 @@ xsartt支持多种序列化数据输入(json/toml/yaml/xml/xconfig)
                 exit
 ```
 
+## 示例
+
+除了一些基本的使用方法示例，我也会不定期写一些复杂一点的应用示例。
+
+[一个使用clang分析c文件后提取有用信息的示例](example/clangAST/README.md)
+
 ## 其他
 
 被裁员了,也许以后不搞软件了。把这个工具上传，希望有人能用得到。

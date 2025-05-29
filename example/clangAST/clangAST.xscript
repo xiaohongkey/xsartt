@@ -1,0 +1,37 @@
+#! ../../bin/xsartt/xsartt.exe xscript
+
+# 首先定义分析clang ast输出需要的正则表达式， 每个节点都是需要提取的子块描述。再合并成大的块。每个节点的名称都可做为-g `group`的输入，并在结果中输出。
+# 这些信息提供给pattern命令，find命令和replace命令都隐含调用pattern,使用合成的正则表达是查找和替换文本。
+set <:<<EOF
+[REGEX_PATTERN_CLANGAST_object]
+object_class='((TypedefDecl)|(FunctionDecl))'
+object_compound='(\r*\n[|\s]\s+.*)+'
+object_start='(`|\|)\-<~object_class~>'
+object_id='0x[0-9a-f]{8}'
+object_ignore='<~object_id~>.*'
+object_name='[a-zA-Z0-9_]+'
+object_type=".+"
+object_Decl="<~object_start~>\\s+<~object_ignore~>\\s+<~object_name~>\\s+'<~object_type~>'"
+object="<~object_Decl~><~object_compound~>"
+:> |
+EOF
+
+# 调用clang分析c文件，需要安装clang. 可以加入选项`--WTF debugfile` 输出中间结果到一个文件以便调试。
+xshell clang  <_$.clangAST.input.buildOption_>  -fsyntax-only -Xclang -ast-dump <_$.clangAST.input.praseFile_> |
+
+# 上一步输出的分析文本作为find命令的输入，再使用`REGEX_PATTERN_CLANGAST_object`找出所有函数的定义
+# 再从每个函数定义中的文本中提取参数的信息，合在一起输出感兴趣的部分。
+find -i @- -k <:<_$.REGEX_PATTERN_CLANGAST_object|.object_class="FunctionDecl":format:json_>:> -p <:<~object~>:> -g object_class -g object_id -g object_name -g object_compound -g object_type |
+jaq -r <:<<EOF
+map(
+    "find -i <:<<EOF" + .object_compound + ":> -k <:<" + "_$.REGEX_PATTERN_CLANGAST_object|.object_class=\"ParmVarDecl\":format:json_>:> -p <:<~object_Decl~>:> -g object_class -g object_id -g object_name -g object_type |\nEOF\n",
+    "jaq  <:{function_prototype:\"\(.object_type)\",function_name:\"\(.object_name)\",function_para: (.|map({para_name:.object_name,para_type:.object_type}))}:>"
+)
+| .[]
+:> |
+EOF
+xscript |
+
+# 输出的的结果放在节点`clantAST.functong`输出，json格式。
+jaq -s <:{clantAST:{function:.}}:>
+
