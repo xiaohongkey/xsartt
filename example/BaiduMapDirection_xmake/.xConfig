@@ -1,0 +1,148 @@
+ISROOT=true
+
+WEB_WAIT_TIME="0.5" 
+EDGE_VERSION = '''
+<!
+xshell powershell.exe Get-ItemPropertyValue -Path 'HKCU:\SOFTWARE\Microsoft\Edge\BLBeacon' -Name "version" |
+jaq -R -s -r <:.|sub("\\r";"";"g")|sub("\\\\n";"";"g"):>
+!>
+'''
+
+PYTHON_SCRIPT = '''
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.edge.service import Service
+from selenium.webdriver.common.by import By
+import time
+import sys
+import io
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf8")
+
+if len(sys.argv) < 2:
+    print(f"usage {sys.argv[0]} <from_address> <to_address>")
+    sys.exit(1)
+
+path_to_edge_driver = 'msedgedriver.exe'
+
+selenium_service = Service(path_to_edge_driver)
+options = webdriver.EdgeOptions()
+options.add_experimental_option('excludeSwitches', ['enable-logging'])
+driver = webdriver.Edge(service=selenium_service, options=options)
+
+driver.get(f'http://api.map.baidu.com/direction?origin={sys.argv[1]}&destination={sys.argv[2]}&mode=transit&region=上海&output=html&src=webapp.baidu.openAPIdemo')
+
+time.sleep(^~$.WEB_WAIT_TIME~^)
+
+try:
+    selBtn1 = driver.find_element(By.XPATH, '//*[@id="RA_ResItem_0"]/table/tbody/tr[1]/td[2]/div')                 
+    selBtn1.click()
+except:
+    pass
+
+time.sleep(^~$.WEB_WAIT_TIME~^)
+
+try:
+    selBtn2 = driver.find_element(By.XPATH, '//*[@id="RA_ResItem_1"]/table/tbody/tr/td[2]/div')
+    selBtn2.click()
+except:
+    pass
+
+time.sleep(^~$.WEB_WAIT_TIME~^)
+
+result = driver.find_element(By.XPATH, '//*[@id="route_list"]')
+print(f"搜索公交路线 {sys.argv[1]} -> {sys.argv[2]}:\n{result.text}")
+
+driver.implicitly_wait(^~$.WEB_WAIT_TIME~^)
+
+screenshot_path = f"查询结果/from_{sys.argv[1]}_to_{sys.argv[2]}.png"
+driver.save_screenshot(screenshot_path)
+# end
+#
+'''
+
+RUN_XSCRIPT='''
+xconfig .search_input -O json |
+jaq -r <:<<EOF
+map(
+    "xshell .venv/Scripts/python.exe run.py \(.from) \(.to)"
+)
+| .[]
+:> |
+EOF
+xscript --WTF 查询结果/result.txt
+'''
+
+[[search_input]]
+from = "爱法花园"
+to = "徐家汇"
+
+[[search_input]]
+from = "徐家汇"
+to = "爱法花园"
+
+[[search_input]]
+from = "浦东机场"
+to = "虹桥机场"
+
+[[XMAKE]]
+TARGET="all"
+DEPENDENCY=["Driver_Notes",".venv","run.xscript","run.py"]
+COMMAND='''
+.\xsartt.exe xscript run.xscript
+'''
+
+[[XMAKE]]
+TARGET="run.xscript"
+DEPENDENCY=[]
+COMMAND='''
+.\xsartt.exe xconfig .RUN_XSCRIPT > run.xscript 
+'''
+
+[[XMAKE]]
+TARGET="run.py"
+DEPENDENCY=[]
+COMMAND='''
+.\xsartt.exe xconfig .PYTHON_SCRIPT > run.py 
+'''
+
+[[XMAKE]]
+TARGET=".venv"
+COMMAND='''
+python -m venv .venv
+.venv/Scripts/python.exe -m pip install selenium
+'''
+
+[[XMAKE]]
+TARGET="Driver_Notes"
+DEPENDENCY=["edgedriver_win64.zip"]
+COMMAND='''
+tar -xzvf edgedriver_win64.zip
+'''
+
+[[XMAKE]]
+TARGET="edgedriver_win64.zip"
+COMMAND='''
+curl -o edgedriver_win64.zip https://msedgedriver.microsoft.com/<_$.EDGE_VERSION_>/edgedriver_win64.zip
+'''
+
+[[XMAKE]]
+TARGET="env_requirement"
+DEPENDENCY=[".venv", "msedgedriver.exe"]
+COMMAND='''
+echo env requirement is ok!
+'''
+
+[[XMAKE]]
+TARGET="deinit"
+DEPENDENCY=[]
+COMMAND='''
+del /Q edgedriver_win64.zip
+del /Q msedgedriver.exe
+del /Q run.py
+del /Q run.xscript
+rd /S /Q Driver_Notes
+rd /S /Q .venv
+'''
+
+

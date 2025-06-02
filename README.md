@@ -383,6 +383,8 @@ xsartt支持多种序列化数据输入(json/toml/yaml/xml/xconfig)
 
 [一个使用clang分析c文件后提取有用信息的示例](example/clangAST/README.md)
 
+[使用python selenium结合xsartt自动从百度地图查询公交路线](example/BaiduMapDirection_xmake/README.md)
+
 ## 其他
 
 被裁员了,也许以后不搞软件了。把这个工具上传，希望有人能用得到。
